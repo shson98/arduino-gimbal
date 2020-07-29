@@ -30,10 +30,16 @@ float map(float val, float a, float b, float c, float d){
   return (val-a)*(d-c)/(b-a)+c;
 }
 
+
+unsigned long motorPrevMicros;
+unsigned long motorCurrentMicros;
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
 
+  Serial.println("test");
+  mySensor.start();
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
   mySensor.beginGyro();
@@ -43,11 +49,15 @@ void setup() {
 
   myservo1.attach(9);
   myservo2.attach(10);
+
+  motorPrevMicros = micros();
+  motorCurrentMicros = micros();
 }
 
+
 void loop() {
-  //refresh sensor every 500 microseconds.
-  if(mySensor.isUpdate(LOOP_MICRO_SEC)) {
+  //refresh sensor every 1000 microseconds.
+//  if(mySensor.isUpdate(LOOP_MICRO_SEC)) {
 
     // Calibrated raw values update
     // accelRaw is relative from zero.
@@ -90,11 +100,19 @@ void loop() {
     dtostrf(angle.y, 4, 2, textBuffer2);
     sprintf(textBuffer, "Filtered angle: (%7s, %7s)", textBuffer1, textBuffer2);
     Serial.println(textBuffer);
-  }
+//  }
+/*
+  motorCurrentMicros = micros();
+  if(motorCurrentMicros - motorPrevMicros > 100000)
+  {
+    //Motor output
+    motorPrevMicros = micros();
 
-  //Motor output
-  /*
-  myservo1.write(90-angle.x);
-  myservo2.write(90+angle.x); //fliped
+  }
   */
+  myservo1.write(((float)90)+gyroAngle.x);
+  myservo2.write(((float)90)-accelAngle.x); //fliped
+  delayMicroseconds(1000);
+  Serial.println(micros());
+  
 }
