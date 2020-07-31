@@ -8,11 +8,11 @@ class Axis {
 
     Axis(float x = 0, float y = 0, float z = 0) { setAll(x, y, z); }
     void setAll(float, float, float);
-    void addAll(Axis);
-    void subtractAll(Axis);
-    void multiplyAll(Axis);
+    void addAll(const Axis&);
+    void subtractAll(const Axis&);
+    void multiplyAll(const Axis&);
     void divideAll(float);
-    void integrateAll(Axis, float);
+    void integrateAll(const Axis&, float);
 };
 
 class MPU9250_custom : public MPU9250_asukiaaa {

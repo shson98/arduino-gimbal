@@ -92,9 +92,9 @@ void MPU9250_custom::updateRawsCalibrated(Axis& accelRaw, Axis& gyroRaw, Axis& m
         atan(-accelZero.y/sqrt(pow(accelZero.x,2)+pow(accelZero.z,2)))) * 
         180/PI;
     accelAngle.y =
-        (atan(-accelRaw.x/sqrt(pow(accelRaw.y,2)+pow(accelRaw.z,2))) - 
+        -((atan(-accelRaw.x/sqrt(pow(accelRaw.y,2)+pow(accelRaw.z,2))) - 
         atan(-accelZero.x/sqrt(pow(accelZero.y,2)+pow(accelZero.z,2)))) * 
-        180/PI;
+        180/PI);
     accelRaw.setAll(accelAngle.x, accelAngle.y, accelAngle.z);
     //Adjust Gyro Raw.
     gyroRaw.subtractAll(gyroDrift);
@@ -117,19 +117,19 @@ void Axis::setAll(float x, float y, float z) {
     this->z = z;
 }
 
-void Axis::addAll(Axis d) {
+void Axis::addAll(const Axis& d) {
     this->x += d.x;
     this->y += d.y;
     this->z += d.z;
 }
 
-void Axis::subtractAll(Axis d) {
+void Axis::subtractAll(const Axis& d) {
     this->x -= d.x;
     this->y -= d.y;
     this->z -= d.z;
 }
 
-void Axis::multiplyAll(Axis d) {
+void Axis::multiplyAll(const Axis& d) {
     this->x *= d.x;
     this->y *= d.y;
     this->z *= d.z;
@@ -141,7 +141,7 @@ void Axis::divideAll(float num) {
     this->z /= num;
 }
 
-void Axis::integrateAll(Axis df, float dt) {
+void Axis::integrateAll(const Axis& df, float dt) {
     this->x += dt*df.x;
     this->y += dt*df.y;
     this->z += dt*df.z;

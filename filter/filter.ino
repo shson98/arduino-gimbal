@@ -1,18 +1,23 @@
 #include <Servo.h>
 #include <math.h>
 #include "MPU9250_custom.h"
+#include "SerialReporter.h"
 
 #define CALIB_MAG_SEC 5
 #define CALIB_COUNT 1000
 
 #define ACCEL_CALIB_SCALE 10.6998
-#define GYRO_INTEGRAL_SCALE -6.6
+#define GYRO_INTEGRAL_SCALE -6.8
 
-#define LOOP_MICRO_SEC 1000
-#define DT (float)LOOP_MICRO_SEC/1000000
+#define SENSOR_REFRESH_INTERVAL 1000
+#define DT (float)SENSOR_REFRESH_INTERVAL/1000000
+
+#define MOTOR_REFRESH_INTERVAL 1000
 
 Servo myservo1;
 Servo myservo2;
+
+SerialReporter reporter;
 
 MPU9250_custom mySensor;
 Axis accelRaw, gyroRaw, magRaw;
@@ -21,15 +26,10 @@ Axis gyroAngle;
 Axis angle;
 float mDirection;
 
-char textBuffer1[7];
-char textBuffer2[7];
-char textBuffer[30];
-
 // map function setting
-float map(float val, float a, float b, float c, float d){
+float map(float val, float a, float b, float c, float d) {
   return (val-a)*(d-c)/(b-a)+c;
 }
-
 
 unsigned long motorPrevMicros;
 unsigned long motorCurrentMicros;
@@ -44,7 +44,7 @@ void setup() {
   mySensor.beginAccel();
   mySensor.beginGyro();
   mySensor.beginMag();
-  mySensor.calibrate(ACCEL_CALIB_SCALE, CALIB_COUNT, LOOP_MICRO_SEC);
+  mySensor.calibrate(ACCEL_CALIB_SCALE, CALIB_COUNT, SENSOR_REFRESH_INTERVAL);
   mySensor.setMagMinMaxAndSetOffset(CALIB_MAG_SEC);
 
   myservo1.attach(9);
@@ -54,11 +54,9 @@ void setup() {
   motorCurrentMicros = micros();
 }
 
-
 void loop() {
-  //refresh sensor every 1000 microseconds.
-//  if(mySensor.isUpdate(LOOP_MICRO_SEC)) {
-
+  //refresh sensor every designated interval.
+  if(mySensor.isUpdate(SENSOR_REFRESH_INTERVAL)) {
     // Calibrated raw values update
     // accelRaw is relative from zero.
     // Drift is eliminated from gyroRaw.
@@ -82,37 +80,19 @@ void loop() {
 
     //Filtering
     //new angle = 0.98*(previous angle + gyro delta) + 0.02 * accel angle.
-    angle.x=0.98*(angle.x + (gyroRaw.x * DT * -GYRO_INTEGRAL_SCALE))+0.02*accelAngle.x;
-    angle.y=0.98*(angle.y + (gyroRaw.y * DT * -GYRO_INTEGRAL_SCALE))+0.02*accelAngle.y;
+    angle.x=0.98*(angle.x + (gyroRaw.x * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.x;
+    angle.y=0.98*(angle.y + (gyroRaw.y * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.y;
 
     //Report
-    dtostrf(accelAngle.x, 4, 2, textBuffer1);
-    dtostrf(accelAngle.y, 4, 2, textBuffer2);
-    sprintf(textBuffer, "Accel angle: (%7s, %7s) ", textBuffer1, textBuffer2);
-    Serial.print(textBuffer);
-
-    dtostrf(gyroAngle.x, 4, 2, textBuffer1);
-    dtostrf(gyroAngle.y, 4, 2, textBuffer2);
-    sprintf(textBuffer, "Gyro angle: (%7s, %7s) ", textBuffer1, textBuffer2);
-    Serial.print(textBuffer);
-
-    dtostrf(angle.x, 4, 2, textBuffer1);
-    dtostrf(angle.y, 4, 2, textBuffer2);
-    sprintf(textBuffer, "Filtered angle: (%7s, %7s)", textBuffer1, textBuffer2);
-    Serial.println(textBuffer);
-//  }
-/*
-  motorCurrentMicros = micros();
-  if(motorCurrentMicros - motorPrevMicros > 100000)
-  {
-    //Motor output
-    motorPrevMicros = micros();
-
+    reporter.reportAccelGyroFilteredXY(accelAngle, gyroAngle, angle);
   }
-  */
-  myservo1.write(((float)90)+gyroAngle.x);
-  myservo2.write(((float)90)-accelAngle.x); //fliped
-  delayMicroseconds(1000);
-  Serial.println(micros());
+
+  motorCurrentMicros = micros();
+  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL)
+  {
+    motorPrevMicros = micros();
+    myservo1.write(((float)90)+angle.y);
+    myservo2.write(((float)90)-angle.y); //fliped
+  }
   
 }
