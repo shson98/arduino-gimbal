@@ -5,13 +5,14 @@
 
 class SerialReporter {
     public:
-    void reportAccelGyroFilteredXY(const Axis&, const Axis&, const Axis&);
+    void reportAccelGyroFilteredXYZ(const Axis&, const Axis&, const Axis&);
     void reportToVisualizer(const Axis&);
 
     private:
     char textBuffer1[8];
     char textBuffer2[8];
-    char textBuffer[30];
+    char textBuffer3[8];
+    char textBuffer[38];
 };
 
 #endif

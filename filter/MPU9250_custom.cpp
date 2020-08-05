@@ -95,7 +95,9 @@ void MPU9250_custom::updateRawsCalibrated(Axis& accelRaw, Axis& gyroRaw, Axis& m
         -((atan(-accelRaw.x/sqrt(pow(accelRaw.y,2)+pow(accelRaw.z,2))) - 
         atan(-accelZero.x/sqrt(pow(accelZero.y,2)+pow(accelZero.z,2)))) * 
         180/PI);
+
     accelRaw.setAll(accelAngle.x, accelAngle.y, accelAngle.z);
+    
     //Adjust Gyro Raw.
     gyroRaw.subtractAll(gyroDrift);
 }

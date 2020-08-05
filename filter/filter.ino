@@ -3,11 +3,11 @@
 #include "MPU9250_custom.h"
 #include "SerialReporter.h"
 
-#define CALIB_MAG_SEC 5
 #define CALIB_COUNT 1000
-
 #define ACCEL_CALIB_SCALE 10.6998
-#define GYRO_INTEGRAL_SCALE -6.8
+#define MAG_CALIB_SEC 10
+
+#define GYRO_INTEGRAL_SCALE -10
 
 #define SENSOR_REFRESH_INTERVAL 1000
 #define DT (float)SENSOR_REFRESH_INTERVAL/1000000
@@ -16,6 +16,7 @@
 
 Servo myservo1;
 Servo myservo2;
+Servo myservo3;
 
 SerialReporter reporter;
 
@@ -45,10 +46,11 @@ void setup() {
   mySensor.beginGyro();
   mySensor.beginMag();
   mySensor.calibrate(ACCEL_CALIB_SCALE, CALIB_COUNT, SENSOR_REFRESH_INTERVAL);
-  mySensor.setMagMinMaxAndSetOffset(CALIB_MAG_SEC);
+  mySensor.setMagMinMaxAndSetOffset(MAG_CALIB_SEC);
 
   myservo1.attach(9);
   myservo2.attach(10);
+  myservo3.attach(11);
 
   motorPrevMicros = micros();
   motorCurrentMicros = micros();
@@ -82,17 +84,19 @@ void loop() {
     //new angle = 0.98*(previous angle + gyro delta) + 0.02 * accel angle.
     angle.x=0.98*(angle.x + (gyroRaw.x * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.x;
     angle.y=0.98*(angle.y + (gyroRaw.y * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.y;
-
+    angle.z=0.98*(angle.z + (gyroRaw.z * DT * GYRO_INTEGRAL_SCALE))+0.02*mDirection;
+    
     //Report
-    reporter.reportAccelGyroFilteredXY(accelAngle, gyroAngle, angle);
+    reporter.reportAccelGyroFilteredXYZ(accelAngle, gyroAngle, angle);
   }
 
   motorCurrentMicros = micros();
-  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL)
-  {
+  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL) {
     motorPrevMicros = micros();
-    myservo1.write(((float)90)+angle.y);
+    myservo1.write(((float)90)+angle.x);
     myservo2.write(((float)90)-angle.y); //fliped
+    myservo3.write(((float)90)+angle.z); //fliped
+    
   }
   
 }
