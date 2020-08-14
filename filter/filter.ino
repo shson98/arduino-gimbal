@@ -84,7 +84,7 @@ void loop() {
     //new angle = 0.98*(previous angle + gyro delta) + 0.02 * accel angle.
     angle.x=0.98*(angle.x + (gyroRaw.x * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.x;
     angle.y=0.98*(angle.y + (gyroRaw.y * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.y;
-    angle.z=0.98*(angle.z + (gyroRaw.z * DT * GYRO_INTEGRAL_SCALE))+0.02*mDirection;
+    angle.z=angle.z + (gyroRaw.z * DT * GYRO_INTEGRAL_SCALE));
     
     //Report
     reporter.reportAccelGyroFilteredXYZ(accelAngle, gyroAngle, angle);
