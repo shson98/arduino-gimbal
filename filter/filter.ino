@@ -90,13 +90,13 @@ void loop() {
     reporter.reportAccelGyroFilteredXYZ(accelAngle, gyroAngle, angle);
   }
 
-  motorCurrentMicros = micros();
-  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL) {
-    motorPrevMicros = micros();
-    myservo1.write(((float)90)+angle.x);
-    myservo2.write(((float)90)-angle.y); //fliped
-    myservo3.write(((float)90)+angle.z); //fliped
-    
-  }
-  
+//  motorCurrentMicros = micros();
+//  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL) {
+//    motorPrevMicros = micros();
+//    myservo1.write(((float)90)+angle.x);
+//    myservo2.write(((float)90)-angle.y); //fliped
+//    myservo3.write(((float)90)+angle.z); //fliped
+//    
+//  }
+  myservo1.write(accelAngle.x);
 }
