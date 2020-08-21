@@ -2,7 +2,8 @@
 #include <math.h>
 #include "MPU9250_custom.h"
 #include "SerialReporter.h"
-
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(2, 3);
 #define CALIB_COUNT 1000
 #define ACCEL_CALIB_SCALE 10.6998
 #define MAG_CALIB_SEC 10
@@ -36,6 +37,7 @@ unsigned long motorPrevMicros;
 unsigned long motorCurrentMicros;
 
 void setup() {
+  mySerial.begin(115200);
   Serial.begin(115200);
   Wire.begin();
 
@@ -63,6 +65,7 @@ void loop() {
     // accelRaw is relative from zero.
     // Drift is eliminated from gyroRaw.
     mySensor.updateRawsCalibrated(accelRaw, gyroRaw, magRaw);
+    mySensor.magUpdate();
     mDirection=mySensor.magHorizDirection();
 
     //Angle defined by Acceleration
@@ -84,12 +87,12 @@ void loop() {
     //new angle = 0.98*(previous angle + gyro delta) + 0.02 * accel angle.
     angle.x=0.98*(angle.x + (gyroRaw.x * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.x;
     angle.y=0.98*(angle.y + (gyroRaw.y * DT * GYRO_INTEGRAL_SCALE))+0.02*accelAngle.y;
-    angle.z=angle.z + (gyroRaw.z * DT * GYRO_INTEGRAL_SCALE));
-    
+    //angle.z=angle.z + (gyroRaw.z * DT * GYRO_INTEGRAL_SCALE);
+    angle.z=mDirection;
     //Report
     reporter.reportAccelGyroFilteredXYZ(accelAngle, gyroAngle, angle);
   }
-
+  mySerial.write(int(angle.x));
 //  motorCurrentMicros = micros();
 //  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL) {
 //    motorPrevMicros = micros();
@@ -97,6 +100,6 @@ void loop() {
 //    myservo2.write(((float)90)-angle.y); //fliped
 //    myservo3.write(((float)90)+angle.z); //fliped
 //    
-//  }
-  myservo1.write(accelAngle.x);
+ //}
+
 }
