@@ -14,7 +14,7 @@ SoftwareSerial mySerial(2, 3);
 #define DT (float)SENSOR_REFRESH_INTERVAL/1000000
 
 #define MOTOR_REFRESH_INTERVAL 1000
-
+char n = '\n';
 Servo myservo1;
 Servo myservo2;
 Servo myservo3;
@@ -52,7 +52,7 @@ void setup() {
 
   myservo1.attach(9);
   myservo2.attach(10);
-  myservo3.attach(11);
+//  myservo3.attach(11);
 
   motorPrevMicros = micros();
   motorCurrentMicros = micros();
@@ -92,7 +92,10 @@ void loop() {
     //Report
     reporter.reportAccelGyroFilteredXYZ(accelAngle, gyroAngle, angle);
   }
-  mySerial.write(int(angle.x));
+    mySerial.write(n);
+    mySerial.write(90+angle.x);
+    mySerial.write(90+angle.y);
+//    mySerial.write("n");
 //  motorCurrentMicros = micros();
 //  if(motorCurrentMicros - motorPrevMicros > MOTOR_REFRESH_INTERVAL) {
 //    motorPrevMicros = micros();
